@@ -1,9 +1,8 @@
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
-import kotlin.system.measureTimeMillis
 
-fun report(result: BorrowResult): String = when (result) {   // exhaustive over sealed class
+fun report(result: BorrowResult): String = when (result) {
     is BorrowResult.Success -> "OK: '${result.book.title}' due ${result.dueDate}"
     is BorrowResult.LimitReached -> "DENIED: loan limit of ${result.limit} reached"
     BorrowResult.NotAvailable -> "DENIED: book already borrowed"
@@ -11,7 +10,6 @@ fun report(result: BorrowResult): String = when (result) {   // exhaustive over 
 }
 
 fun main() {
-    // Variables and basic types
     val libraryName: String = "City Library"
     var operations = 0
 
@@ -33,11 +31,9 @@ fun main() {
     println("=== $libraryName ===")
     println(library.describe())
 
-    // Polymorphism: same call, different behaviour
     val describables: List<Describable> = library.allMembers() + library
     for (d in describables) println(d.describe())
 
-    // Loops + conditions + sealed class results
     println("\n--- Borrowing ---")
     val requests = listOf(alice to 1, alice to 1, bob to 1, alice to 2, alice to 3, alice to 4, bob to 99)
     for ((member, id) in requests) {
@@ -47,7 +43,6 @@ fun main() {
     }
     println("Operations performed: $operations")
 
-    // Collections: filter / map / reduce / groupBy
     println("\n--- Collection operations ---")
     val classics = library.search { it.genre == "Classic" }
     println("Classics: ${classics.map { it.title }}")
@@ -60,20 +55,24 @@ fun main() {
     val authors: Set<String> = library.allBooks().map { it.author.substringAfterLast(' ') }.toSet()
     println("Author surnames (Set): $authors")
 
-    // data class copy
     val discounted = library.allBooks().first().copy(price = 9.99)
     println("Copy of first book: $discounted")
 
-    // Coroutines: fetch ratings concurrently with suspend function
     println("\n--- Coroutines ---")
     runBlocking {
-        val time = measureTimeMillis {
-            val ratings = library.allBooks()
-                .map { book -> async { book.title to library.fetchBookRating(book.id) } }
-                .awaitAll()
-            ratings.sortedByDescending { it.second }
-                .forEach { (title, rating) -> println("$title: rating $rating") }
+        val start = System.currentTimeMillis()
+
+        val tasks = library.allBooks().map { book ->
+            async { library.fetchBookRating(book.id) }
         }
+        val ratings = tasks.awaitAll()
+
+        val books = library.allBooks()
+        for (i in books.indices) {
+            println("${books[i].title}: rating ${ratings[i]}")
+        }
+
+        val time = System.currentTimeMillis() - start
         println("Fetched 6 ratings concurrently in ~${time}ms (sequentially it would take ~1800ms)")
     }
 }

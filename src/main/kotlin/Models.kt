@@ -1,6 +1,5 @@
 import java.time.LocalDate
 
-// Data class: auto-generated equals/hashCode/toString/copy
 data class Book(
     val id: Int,
     val title: String,
@@ -10,12 +9,10 @@ data class Book(
     val price: Double
 )
 
-// Interface + polymorphism
 interface Describable {
     fun describe(): String
 }
 
-// Base class (open) with inheritance
 open class Member(val name: String, val maxLoans: Int) : Describable {
     private val _borrowed = mutableListOf<Book>()
     val borrowed: List<Book> get() = _borrowed
@@ -40,7 +37,6 @@ class Teacher(name: String) : Member(name, maxLoans = 6) {
     override fun describe(): String = "Teacher ${super.describe()}"
 }
 
-// Sealed class: closed set of results of a borrow operation
 sealed class BorrowResult {
     data class Success(val book: Book, val dueDate: LocalDate) : BorrowResult()
     data class LimitReached(val limit: Int) : BorrowResult()

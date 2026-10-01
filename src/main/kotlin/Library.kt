@@ -2,9 +2,9 @@ import kotlinx.coroutines.delay
 import java.time.LocalDate
 
 class Library : Describable {
-    private val books = mutableMapOf<Int, Book>()          // Map: id -> book
-    private val available = mutableSetOf<Int>()            // Set: ids of books on the shelf
-    private val members = mutableListOf<Member>()          // List
+    private val books = mutableMapOf<Int, Book>()
+    private val available = mutableSetOf<Int>()
+    private val members = mutableListOf<Member>()
 
     fun addBook(book: Book) {
         books[book.id] = book
@@ -31,16 +31,13 @@ class Library : Describable {
         available.add(book.id)
     }
 
-    // Suspend function simulating a slow remote call (e.g. a database / network)
     suspend fun fetchBookRating(bookId: Int): Double {
         delay(300)
         return 3.0 + (bookId % 20) / 10.0
     }
 
-    // Higher-order function: filter by any predicate
     fun search(predicate: (Book) -> Boolean): List<Book> = books.values.filter(predicate)
 
-    // Collection operations
     fun booksByGenre(): Map<String, List<Book>> = books.values.groupBy { it.genre }
     fun titlesOfAvailable(): List<String> = available.mapNotNull { books[it]?.title }.sorted()
     fun totalValue(): Double = books.values.map { it.price }.reduce { a, b -> a + b }
